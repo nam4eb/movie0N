@@ -73,7 +73,7 @@
 								<h4>(2009)</h4>
 							</div>
 							<div class="movie-feature d-flex">
-								<button class="btn btn-md btn-light"><a href="index.php?module=movie-detail">Watch <i class="fas fa-play"></i></a></button>
+								<a class="btn btn-md btn-light" href="{{ route('movies.index') }}">Watch <i class="fas fa-play"></i></a>
 								<button class="btn btn-md btn-danger"><i class="far fa-heart"></i></button>
 								<button class="btn btn-md btn-success">Add list <i class="far fa-plus-square"></i></button>
 							</div>
@@ -85,7 +85,7 @@
 								<h4>(1973)</h4>
 							</div>
 							<div class="movie-feature d-flex">
-								<button class="btn btn-md btn-light"><a href="index.php?module=movie-detail">Watch <i class="fas fa-play"></i></a></button>
+								<a class="btn btn-md btn-light" href="{{ route('movies.index') }}">Watch <i class="fas fa-play"></i></a>
 								<button class="btn btn-md btn-success">Add list <i class="far fa-plus-square"></i></button>
 								<button class="btn btn-md btn-danger"><i class="far fa-heart"></i></button>
 							</div>
@@ -97,7 +97,7 @@
 								<h4>(2015)</h4>
 							</div>
 							<div class="movie-feature d-flex">
-								<button class="btn btn-md btn-light"><a href="index.php?module=movie-detail">Watch <i class="fas fa-play"></i></a></button>
+								<a class="btn btn-md btn-light" href="{{ route('movies.index') }}">Watch <i class="fas fa-play"></i></a>
 								<button class="btn btn-md btn-success">Add list <i class="far fa-plus-square"></i></button>
 								<button class="btn btn-md btn-danger"><i class="far fa-heart"></i></button>
 							</div>
@@ -109,7 +109,7 @@
 								<h4>(2021)</h4>
 							</div>
 							<div class="movie-feature d-flex">
-								<button class="btn btn-md btn-light"><a href="index.php?module=movie-detail">Watch <i class="fas fa-play"></i></a></button>
+								<a class="btn btn-md btn-light" href="{{ route('movies.index') }}">Watch <i class="fas fa-play"></i></a>
 								<button class="btn btn-md btn-success">Add list <i class="far fa-plus-square"></i></button>
 								<button class="btn btn-md btn-danger"><i class="far fa-heart"></i></button>
 							</div>

@@ -3,6 +3,8 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
     <title>movie0N</title>
     <link href="{{asset('/FE/img/logo.png')}}" rel="icon">
     <link rel="stylesheet" href="{{asset('/FE/css/index.css')}}">
@@ -19,39 +21,42 @@
 <body>
     <div id="header">
         <nav class="navbar navbar-expand-sm">
-          <!-- Brand/logo -->
-            <div class="nav-left col-8">
-                <a class="navbar-brand" href="#">
-                    <img src="{{asset('/FE/img/logo.png')}}" alt="logo" width="66px">
-                </a>
-                <ul class="navbar-nav">
-                    <li class="nav-item">
-                        <a class="nav-link" href="index.php?module=home">Home</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">TV Shows</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">Movies</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">New & popular</a>
-                    </li>
-                    <li class="nav-item">
-                        <a class="nav-link" href="#">My List</a>
-                    </li>
-                </ul>
-            </div>
-            <div class="nav-right col-4 d-flex">
-                <form class="form-search">
-                    <input class="form-control" type="text" placeholder="Search..">
-                    <i class="fas fa-search"></i>
-                </form>
-                <div class="noti">
-                    <i class="material-icons">notifications</i>
+            <div class="container">
+                <div class="nav-left">
+                    <a class="navbar-brand" href="{{ route('home') }}">
+                        <img src="{{asset('/FE/img/logo.png')}}" alt="logo" width="48">
+                    </a>
+                    <ul class="navbar-nav">
+                        <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('tvshows.index') }}">TV Shows</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('movies.index') }}">Movies</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('news.index') }}">New & popular</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('favorites') }}">My List</a></li>
+                    </ul>
                 </div>
-                <div class="user">
-                    <i class="fas fa-user-tie"></i>
+                <div class="nav-right">
+                    <form class="form-search">
+                        <input class="form-control" type="text" placeholder="Search..">
+                        <i class="fas fa-search"></i>
+                    </form>
+                    <div class="noti">
+                        <i class="material-icons">notifications</i>
+                    </div>
+                    <div class="theme-toggle">
+                        <button id="themeToggle" class="btn btn-sm btn-secondary">Light</button>
+                    </div>
+                    <div class="user d-flex align-items-center">
+                        @guest
+                            <a href="{{ route('login') }}" class="btn btn-outline-light btn-sm mr-2">Login</a>
+                            <a href="{{ route('register') }}" class="btn btn-primary btn-sm">Register</a>
+                        @else
+                            <a href="{{ route('profile.show') }}" class="mr-2" style="color:inherit;text-decoration:none;"><i class="fas fa-user-tie"></i></a>
+                            <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
+                                @csrf
+                                <button class="btn btn-danger btn-sm">Logout</button>
+                            </form>
+                        @endguest
+                    </div>
                 </div>
             </div>
         </nav>
@@ -98,6 +103,31 @@
                 <div class="footer-bottom d-flex text-center">
                     <div class="col-6"><p>Made with <i class="fa fa-keyboard-o"></i> and <i class="fa fa-hand-stop-o">.</i></p></div>
                     <div class="col-6"><h5>Designed by Le Thanh Long.</h5></div>
+    <script>
+        (function() {
+            const btn = document.getElementById('themeToggle');
+            function applyTheme(theme) {
+                if (theme === 'light') {
+                    document.body.classList.add('theme-light');
+                    if (btn) btn.textContent = 'Dark';
+                } else {
+                    document.body.classList.remove('theme-light');
+                    if (btn) btn.textContent = 'Light';
+                }
+            }
+            const saved = localStorage.getItem('theme') || 'dark';
+            applyTheme(saved);
+            if (btn) {
+                btn.addEventListener('click', function(){
+                    const current = document.body.classList.contains('theme-light') ? 'light' : 'dark';
+                    const next = current === 'light' ? 'dark' : 'light';
+                    localStorage.setItem('theme', next);
+                    applyTheme(next);
+                });
+            }
+        })();
+    </script>
+
                 </div>
             </div>
         </div>
