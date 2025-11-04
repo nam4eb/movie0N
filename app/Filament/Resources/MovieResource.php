@@ -6,9 +6,9 @@ use App\Filament\Resources\MovieResource\Pages;
 use App\Filament\Resources\MovieResource\RelationManagers;
 use App\Models\Movie;
 use Filament\Forms;
-use Filament\Resources\Form;
+use Filament\Forms\Form;
 use Filament\Resources\Resource;
-use Filament\Resources\Table;
+use Filament\Tables\Table;
 use Filament\Tables;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletingScope;
@@ -40,7 +40,11 @@ class MovieResource extends Resource
             ->columns([
                 Tables\Columns\TextColumn::make('movie_id')->sortable()->label('ID'),
                 Tables\Columns\TextColumn::make('movie_name')->searchable()->sortable()->label('Name'),
-                Tables\Columns\BadgeColumn::make('status')->enum([0=>'Inactive',1=>'Active'])->colors(['danger'=>0,'success'=>1])->label('Status'),
+                Tables\Columns\TextColumn::make('status')
+                    ->label('Status')
+                    ->badge()
+                    ->formatStateUsing(fn ($state) => (int)$state === 1 ? 'Active' : 'Inactive')
+                    ->color(fn ($state) => (int)$state === 1 ? 'success' : 'danger'),
                 Tables\Columns\TextColumn::make('created_at')->dateTime()->sortable(),
             ])
             ->filters([

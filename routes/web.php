@@ -1,7 +1,6 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use App\Http\Controllers\IndexController;
 
@@ -9,15 +8,12 @@ use App\Http\Controllers\IndexController;
 |--------------------------------------------------------------------------
 | Web Routes
 |--------------------------------------------------------------------------
-|
-| Here is where you can register web routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| contains the "web" middleware group. Now create something great!
-|
 */
 
-// Auth routes (login/register/password resets)
-Auth::routes();
+// Include Breeze auth routes
+if (file_exists(__DIR__.'/auth.php')) {
+    require __DIR__.'/auth.php';
+}
 
 // Public pages
 Route::get('/', [IndexController::class, 'home'])->name('home');
@@ -70,10 +66,3 @@ Route::get('/index.php', function (Request $request) {
 
 // User pages
 Route::get('/favorites', [IndexController::class, 'favorites'])->name('favorites')->middleware('auth');
-
-// Admin routes (disabled for now)
-// Route::resource('/category', CategoryController::class);
-// Route::resource('/movie', MovieController::class);
-// Route::resource('/genre', GenreController::class);
-// Route::resource('/country', CountryController::class);
-// Route::resource('/episode', EpisodeController::class);
