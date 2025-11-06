@@ -4,34 +4,165 @@
 <div class="container" style="margin-top:20px;">
     <div class="row">
         <div class="col-lg-9 main-content-area">
-            {{-- Carousel / Hero --}}
-            @if(isset($carouselMovies) && $carouselMovies->count())
-                <div id="homeCarousel" class="carousel slide" data-ride="carousel" style="margin-bottom:25px;">
-                    <ol class="carousel-indicators">
-                        @foreach($carouselMovies as $i => $m)
-                            <li data-target="#homeCarousel" data-slide-to="{{ $i }}" class="{{ $i==0 ? 'active' : '' }}"></li>
-                        @endforeach
-                    </ol>
-                    <div class="carousel-inner">
-                        @foreach($carouselMovies as $i => $m)
-                            <div class="item {{ $i==0 ? 'active' : '' }}">
-                                <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
-                                <div class="carousel-caption">
-                                    <p>{{ $m->movie_name }}</p>
-                                    <div class="d-flex">
-                                        <a href="{{ route('movies.show', $m->movie_id) }}" class="btn btn-warning btn-lg">Watch</a>
-                                    </div>
-                                </div>
-                            </div>
-                        @endforeach
+            {{-- Hero section inspired by reference UI --}}
+            @if(isset($featuredMovie))
+                <div class="hero-section" id="heroSection" style="background-image:url('{{ asset('img/' . $featuredMovie->image) }}')">
+                    <div class="hero-content">
+                        <div class="text-muted small mb-2">{{ $featuredMovie->country->country_name ?? 'Movie' }} • {{ $featuredMovie->created_at?->format('Y') }}</div>
+                        <h1 class="hero-title">{{ strtoupper($featuredMovie->movie_name) }}</h1>
+                        <div class="hero-description">{{ \Illuminate\Support\Str::limit($featuredMovie->description, 180) }}</div>
+                        <div class="hero-buttons">
+                            <a href="{{ route('movies.show', $featuredMovie->movie_id) }}" class="btn btn-warning"><i class="fa fa-play"></i> Xem ngay</a>
+                            <a href="{{ route('movies.show', $featuredMovie->movie_id) }}" class="btn btn-outline-light"><i class="fa fa-info-circle"></i> Chi tiết</a>
+                        </div>
                     </div>
-                    <a class="left carousel-control" href="#homeCarousel" role="button" data-slide="prev">
-                        <span class="glyphicon glyphicon-chevron-left" aria-hidden="true"></span>
-                    </a>
-                    <a class="right carousel-control" href="#homeCarousel" role="button" data-slide="next">
-                        <span class="glyphicon glyphicon-chevron-right" aria-hidden="true"></span>
-                    </a>
                 </div>
+                @if(isset($carouselMovies) && $carouselMovies->count())
+                <div class="d-flex align-items-center" style="gap:10px; overflow-x:auto; padding-bottom:8px; margin-top:-15px; margin-bottom:25px;">
+                    @foreach($carouselMovies as $m)
+                        <img class="hero-thumb" data-hero="{{ asset('img/' . $m->image) }}" src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}" style="width:110px;height:62px;object-fit:cover;border-radius:8px;cursor:pointer;opacity:.85;">
+                    @endforeach
+                </div>
+                <script>
+                    $(function(){
+                        $(document).on('click','.hero-thumb',function(){
+                            const url = $(this).data('hero');
+                            $('#heroSection').css('background-image', 'url("'+url+'")');
+                        });
+                    });
+                </script>
+                @endif
+            @endif
+
+            {{-- Topic chips --}}
+            @if(isset($topGenres) && $topGenres->count())
+            <div class="topic-chips">
+                <div class="chips-title">Bạn đang quan tâm gì?</div>
+                <div class="chips-list">
+                    @foreach($topGenres as $g)
+                        <a class="chip" href="{{ route('genres.show', $g->genre_id) }}">{{ $g->genre_name }}</a>
+                    @endforeach
+                    <a class="chip chip-muted" href="{{ route('genres.index') }}">+ Thêm chủ đề</a>
+                </div>
+            </div>
+            @endif
+
+            {{-- Theatrical highlights (Phim Chiếu Rạp) --}}
+            @if(isset($theatricalHighlights) && $theatricalHighlights->count())
+            <div class="movie-list">
+                <h2>Mãn nhãn với Phim Chiếu Rạp</h2>
+                <div class="wide-scroll" id="theatricalScroll">
+                    @foreach($theatricalHighlights as $m)
+                        <a class="wide-card" href="{{ route('movies.show', $m->movie_id) }}">
+                            <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
+                            <div class="wide-meta">
+                                <div class="title">{{ $m->movie_name }}</div>
+                                <div class="sub">{{ $m->country->country_name ?? 'Movie' }} • {{ $m->created_at?->format('Y') }}</div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+                <div class="scroll-arrows">
+                    <button class="btn btn-sm btn-secondary" data-target="#theatricalScroll" data-dir="-1"><i class="fa fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-secondary" data-target="#theatricalScroll" data-dir="1"><i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+            @endif
+
+            {{-- Top 10 phim là hôm nay --}}
+            @if(isset($topToday) && $topToday->count())
+            <div class="movie-list">
+                <h2>Top 10 phim là hôm nay</h2>
+                <div class="rank-grid">
+                    @foreach($topToday as $row)
+                        @php($m = $row->movie)
+                        <a class="rank-card" href="{{ route('movies.show', $m->movie_id) }}">
+                            <span class="rank-number">{{ $loop->iteration }}</span>
+                            <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
+                            <div class="r-meta">
+                                <div class="title">{{ $m->movie_name }}</div>
+                                <div class="sub">{{ $row->views }} lượt xem hôm nay</div>
+                            </div>
+                        </a>
+                    @endforeach
+                </div>
+            </div>
+            @endif
+
+            {{-- Phim Nhật mới oanh tạc chốn này --}}
+            @if(isset($latestJapan) && $latestJapan->count())
+            <div class="movie-list">
+                <h2>Phim Nhật Mới Oanh Tạc Chốn Này</h2>
+                <div class="wide-scroll" id="japanScroll">
+                    @foreach($latestJapan as $m)
+                        <a class="poster-card" href="{{ route('movies.show', $m->movie_id) }}">
+                            <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
+                            <div class="p-title">{{ $m->movie_name }}</div>
+                        </a>
+                    @endforeach
+                </div>
+                <div class="scroll-arrows">
+                    <button class="btn btn-sm btn-secondary" data-target="#japanScroll" data-dir="-1"><i class="fa fa-chevron-left"></i></button>
+                    <button class="btn btn-sm btn-secondary" data-target="#japanScroll" data-dir="1"><i class="fa fa-chevron-right"></i></button>
+                </div>
+            </div>
+            @endif
+
+            <script>
+                $(function(){
+                    $(document).on('click', '.scroll-arrows button', function(){
+                        const target = $(this).data('target');
+                        const dir = parseInt($(this).data('dir'), 10) || 1;
+                        const wrap = $(target);
+                        wrap.animate({ scrollLeft: wrap.scrollLeft() + dir * 420 }, 250);
+                    });
+                });
+            </script>
+
+
+            <script>
+                $(function(){
+                    function autoSlide(containerSel, interval){
+                        const $wrap = $(containerSel);
+                        if(!$wrap.length) return;
+                        const $items = $wrap.children();
+                        if($items.length <= 1) return;
+                        let idx = 0, timer = null;
+                        function go(next){
+                            idx = next % $items.length;
+                            const $t = $items.eq(idx);
+                            const left = $t.position().left + $wrap.scrollLeft();
+                            $wrap.stop().animate({ scrollLeft: left }, 400);
+                        }
+                        function start(){ stop(); timer = setInterval(()=> go(idx+1), interval || 3000); }
+                        function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+                        $wrap.on('mouseenter', stop).on('mouseleave', start);
+                        start();
+                    }
+                    // Auto slide for horizontal sliders
+                    autoSlide('#theatricalScroll', 3200);
+                    autoSlide('#japanScroll', 3200);
+                    autoSlide('.coming-soon-horizontal', 3200);
+                });
+            </script>
+
+
+            {{-- Coming soon horizontal list --}}
+            @if(isset($comingSoonMovies) && $comingSoonMovies->count())
+            <div class="movie-list" style="margin-top:10px;">
+                <h2>Phim sắp tới trên rạp</h2>
+                <div class="coming-soon-horizontal">
+                    @foreach($comingSoonMovies as $m)
+                        <div class="cs-card">
+                            <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
+                            <div class="cs-meta">
+                                <a href="{{ route('movies.show', $m->movie_id) }}">{{ $m->movie_name }}</a>
+                                <div class="small text-muted">Đang cập nhật</div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            </div>
             @endif
 
             <div class="movie-list-section">
@@ -129,6 +260,38 @@
                     </div>
                 </div>
                 @endif
+
+                {{-- Anime spotlight section --}}
+                @if(isset($latestAnime) && $latestAnime->count())
+                @php($spot = $latestAnime->first())
+                <div class="movie-list" style="margin-top:25px;">
+                    <h2>Kho tàng Anime mới nhất</h2>
+                    <div class="hero-section" id="animeHero" style="background-image:url('{{ asset('img/' . $spot->image) }}'); height:420px;">
+                        <div class="hero-content">
+                            <div class="text-muted small mb-2">Anime • {{ $spot->created_at?->format('Y') }}</div>
+                            <h2 class="hero-title" style="font-size:2.2rem;">{{ $spot->movie_name }}</h2>
+                            <div class="hero-description">{{ \Illuminate\Support\Str::limit($spot->description, 150) }}</div>
+                            <div class="hero-buttons">
+                                <a href="{{ route('movies.show', $spot->movie_id) }}" class="btn btn-warning"><i class="fa fa-play"></i> Xem ngay</a>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="d-flex align-items-center" style="gap:10px; overflow-x:auto; padding-bottom:8px; margin-top:-15px;">
+                        @foreach($latestAnime as $m)
+                            <img class="hero-thumb anime-thumb" data-hero="{{ asset('img/' . $m->image) }}" src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}" style="width:90px;height:90px;object-fit:cover;border-radius:12px;cursor:pointer;opacity:.9;">
+                        @endforeach
+                    </div>
+                </div>
+                <script>
+                    $(function(){
+                        $(document).on('click','.anime-thumb',function(){
+                            const url = $(this).data('hero');
+                            $('#animeHero').css('background-image', 'url("'+url+'")');
+                        });
+                    });
+                </script>
+                @endif
+
             </div>
 
 @auth

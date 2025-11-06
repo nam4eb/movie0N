@@ -6,6 +6,9 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use App\Models\Comment;
 use App\Models\Playlist;
+use App\Models\Country;
+use App\Models\Category;
+use App\Models\Genre;
 
 class Movie extends Model
 {
@@ -41,4 +44,19 @@ class Movie extends Model
         return $this->belongsToMany(Playlist::class, 'playlist_movie', 'movie_id', 'playlist_id');
     }
 
+    // Relations for convenience in views
+    public function country()
+    {
+        return $this->belongsTo(Country::class, 'country_id', 'country_id');
+    }
+
+    public function category()
+    {
+        return $this->belongsTo(Category::class, 'cat_id', 'cat_id');
+    }
+
+    public function genre()
+    {
+        return $this->belongsTo(Genre::class, 'genre_id', 'genre_id');
+    }
 }

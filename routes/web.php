@@ -19,9 +19,16 @@ if (file_exists(__DIR__.'/auth.php')) {
 Route::get('/', [IndexController::class, 'home'])->name('home');
 Route::get('/home', [IndexController::class, 'home']);
 
+// Search suggestions API for overlay
+Route::get('/search/suggest', [IndexController::class, 'searchSuggestions'])->name('search.suggest');
+
 // Movies listing and detail (dynamic)
 Route::get('/movies', [IndexController::class, 'movies'])->name('movies.index');
 Route::get('/movies/{movie:movie_id}', [IndexController::class, 'movieDetail'])->name('movies.show');
+
+// Genres
+Route::get('/genres', [IndexController::class, 'genresIndex'])->name('genres.index');
+Route::get('/genres/{genre:genre_id}', [IndexController::class, 'genreShow'])->name('genres.show');
 
 // TV Shows (filter by series category)
 Route::get('/tv-shows', [IndexController::class, 'tvShows'])->name('tvshows.index');
@@ -44,7 +51,7 @@ Route::post('/playlists/{playlist}/movies/{movie:movie_id}', [\App\Http\Controll
 Route::get('/profile', [\App\Http\Controllers\UserController::class, 'show'])->name('profile.show');
 Route::put('/profile', [\App\Http\Controllers\UserController::class, 'update'])->name('profile.update');
 
-Route::get('/watch-movie', [IndexController::class, 'watchMovie'])->name('movie.watch');
+Route::get('/movies/{movie:movie_id}/watch', [IndexController::class, 'watchMovie'])->name('movie.watch');
 
 // Backward compatible alias for old route name used in some views
 Route::get('/movie-detail', fn () => redirect()->route('movies.index'))->name('movie.detail');

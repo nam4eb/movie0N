@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 use App\Models\Movie;
 use App\Models\Category;
 use App\Models\Country;
+use App\Models\Genre;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 
@@ -15,6 +16,10 @@ class IndexController extends Controller
     public function home()
     {
         $carouselMovies = Movie::latest()->take(5)->get();
+        $featuredMovie = $carouselMovies->first();
+
+        // Topics / chips
+        $topGenres = Genre::orderBy('genre_name')->take(7)->get();
 
         // Fetch categories & country to dynamically find their IDs
         $movieCat = Category::where('cat_name', 'like', '%movie%')->first();
@@ -26,6 +31,39 @@ class IndexController extends Controller
         $topKoreanTvSeries = ($tvSeriesCat && $korea)
             ? Movie::where('cat_id', $tvSeriesCat->cat_id)->where('country_id', $korea->country_id)->latest()->take(10)->get()
             : collect();
+
+        // Latest Anime list for spotlight
+        $animeGenre = Genre::where('genre_name', 'like', '%anime%')->first();
+        $latestAnime = $animeGenre ? Movie::where('genre_id', $animeGenre->genre_id)->latest()->take(12)->get() : collect();
+
+        // Theatrical highlights (latest single movies)
+        $theatricalHighlights = $movieCat ? Movie::where('cat_id', $movieCat->cat_id)->orderBy('created_at','desc')->take(8)->get() : collect();
+
+        // Top 10 today by view count (safe if table not existing)
+        $topToday = collect();
+        try {
+            $startDay = now()->startOfDay();
+            $endDay = now()->endOfDay();
+            $topMoviesToday = \DB::table('movie_views')
+                ->select('movie_id', \DB::raw('COUNT(*) as views'))
+                ->whereBetween('created_at', [$startDay, $endDay])
+                ->groupBy('movie_id')
+                ->orderByDesc('views')
+                ->limit(10)
+                ->get();
+            $topTodayIds = $topMoviesToday->pluck('movie_id')->all();
+            $topTodayModels = Movie::whereIn('movie_id', $topTodayIds)->get()->keyBy('movie_id');
+            $topToday = $topMoviesToday->map(function ($row) use ($topTodayModels) {
+                $m = $topTodayModels->get($row->movie_id);
+                return $m ? (object) ['movie' => $m, 'views' => $row->views] : null;
+            })->filter()->values();
+        } catch (\Throwable $e) {
+            $topToday = collect();
+        }
+
+        // Latest Japan releases
+        $japan = Country::where('country_name', 'like', '%japan%')->first();
+        $latestJapan = $japan ? Movie::where('country_id', $japan->country_id)->latest()->take(12)->get() : collect();
 
         // Coming soon: only 5
         $comingSoonMovies = Movie::where('status', 0)->latest()->take(5)->get();
@@ -51,6 +89,12 @@ class IndexController extends Controller
 
         return view('pages.home', compact(
             'carouselMovies',
+            'featuredMovie',
+            'topGenres',
+            'latestAnime',
+            'theatricalHighlights',
+            'topToday',
+            'latestJapan',
             'topMovies',
             'topTvSeries',
             'topKoreanTvSeries',
@@ -83,9 +127,16 @@ class IndexController extends Controller
     }
 
     // Watch movie page
-    public function watchMovie()
+    public function watchMovie(Movie $movie)
     {
-        return view('pages.watch-movie');
+        // You might want to get related movies or episodes here as well
+        $related = Movie::where('cat_id', $movie->cat_id)
+            ->where('movie_id', '!=', $movie->movie_id)
+            ->latest()
+            ->take(10)
+            ->get();
+
+        return view('pages.watch-movie', compact('movie', 'related'));
     }
 
     // List all movies page (dynamic with pagination)
@@ -98,6 +149,9 @@ class IndexController extends Controller
         }
         if ($request->filled('country')) {
             $query->where('country_id', (int) $request->input('country'));
+        }
+        if ($request->filled('genre')) {
+            $query->where('genre_id', (int) $request->input('genre'));
         }
         if ($request->filled('status')) {
             $query->where('status', (int) $request->input('status'));
@@ -121,8 +175,9 @@ class IndexController extends Controller
 
         $categories = Category::orderBy('cat_name')->get(['cat_id', 'cat_name']);
         $countries = Country::orderBy('country_name')->get(['country_id', 'country_name']);
+        $genres = \App\Models\Genre::orderBy('genre_name')->get(['genre_id','genre_name']);
 
-        return view('pages.movie', compact('movies', 'categories', 'countries'));
+        return view('pages.movie', compact('movies', 'categories', 'countries', 'genres'));
     }
 
     // TV shows listing (filter by series category)
@@ -144,8 +199,34 @@ class IndexController extends Controller
 
         $categories = Category::orderBy('cat_name')->get(['cat_id', 'cat_name']);
         $countries = Country::orderBy('country_name')->get(['country_id', 'country_name']);
+        $genres = Genre::orderBy('genre_name')->get(['genre_id','genre_name']);
 
-        return view('pages.movie', compact('movies', 'categories', 'countries'));
+        return view('pages.movie', compact('movies', 'categories', 'countries','genres'));
+    }
+
+    // Genres index page
+    public function genresIndex()
+    {
+        $genres = Genre::orderBy('genre_name')->get();
+        return view('pages.genres-index', compact('genres'));
+    }
+
+    // Movies by genre
+    public function genreShow(Genre $genre, Request $request)
+    {
+        $query = Movie::where('genre_id', $genre->genre_id);
+        if ($request->filled('country')) {
+            $query->where('country_id', (int) $request->input('country'));
+        }
+        if ($request->filled('status')) {
+            $query->where('status', (int) $request->input('status'));
+        }
+        $query->orderBy('created_at', 'desc');
+        $movies = $query->paginate(12)->appends($request->query());
+        $categories = Category::orderBy('cat_name')->get(['cat_id', 'cat_name']);
+        $countries = Country::orderBy('country_name')->get(['country_id', 'country_name']);
+        $genres = Genre::orderBy('genre_name')->get(['genre_id','genre_name']);
+        return view('pages.movie', compact('movies','categories','countries','genres'));
     }
 
     // User profile page
@@ -160,5 +241,55 @@ class IndexController extends Controller
         $user = Auth::user();
         $movies = $user ? $user->favorites()->latest()->paginate(12) : collect();
         return view('pages.favorites', compact('movies'));
+    }
+
+    // Suggest movies for search overlay (JSON)
+    public function searchSuggestions(Request $request)
+    {
+        $q = trim((string) $request->get('q', ''));
+        $limit = (int) ($request->get('limit', 18));
+        $limit = max(6, min(48, $limit));
+
+        if ($q !== '') {
+            $movies = Movie::where('movie_name', 'like', "%{$q}%")
+                ->orderBy('created_at','desc')
+                ->limit($limit)
+                ->get(['movie_id','movie_name','image']);
+        } else {
+            // Popular this month by views (fallback to latest)
+            try {
+                $startMonth = now()->startOfMonth();
+                $endMonth = now()->endOfMonth();
+                $popular = \DB::table('movie_views')
+                    ->select('movie_id', \DB::raw('COUNT(*) as views'))
+                    ->whereBetween('created_at', [$startMonth, $endMonth])
+                    ->groupBy('movie_id')
+                    ->orderByDesc('views')
+                    ->limit($limit)
+                    ->get();
+                $ids = $popular->pluck('movie_id')->all();
+                $movies = Movie::whereIn('movie_id', $ids)
+                    ->get(['movie_id','movie_name','image']);
+                // Keep the order as by views
+                $byId = $movies->keyBy('movie_id');
+                $movies = $popular->map(fn($r) => $byId->get($r->movie_id))->filter()->values();
+                if ($movies->isEmpty()) {
+                    $movies = Movie::latest()->limit($limit)->get(['movie_id','movie_name','image']);
+                }
+            } catch (\Throwable $e) {
+                $movies = Movie::latest()->limit($limit)->get(['movie_id','movie_name','image']);
+            }
+        }
+
+        $data = $movies->map(function ($m) {
+            return [
+                'id' => $m->movie_id,
+                'title' => $m->movie_name,
+                'image' => asset('img/'.$m->image),
+                'url' => route('movies.show', $m->movie_id),
+            ];
+        });
+
+        return response()->json(['items' => $data]);
     }
 }
