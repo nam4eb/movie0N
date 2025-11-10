@@ -26,6 +26,7 @@ class Movie extends Model
         'movie_name',
         'image',
         'description',
+        'release_year',
         'status',
     ];
 

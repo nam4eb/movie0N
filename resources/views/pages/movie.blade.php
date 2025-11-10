@@ -36,6 +36,14 @@
                     @endforeach
                 </select>
             </div>
+            <div class="filter-item">
+                <select name="year" class="form-control custom-select filter-select">
+                    <option value="">Năm sản xuất</option>
+                    @for($y = now()->year; $y >= 1980; $y--)
+                        <option value="{{ $y }}" {{ (string)request()->query('year')===(string)$y ? 'selected' : '' }}>{{ $y }}</option>
+                    @endfor
+                </select>
+            </div>
         </div>
         <div class="filter-actions" style="display:none;">
             <button class="btn btn-primary" type="submit">Lọc phim</button>
@@ -43,6 +51,7 @@
         </div>
     </form>
 
+    @php($userPlaylists = auth()->check() ? auth()->user()->playlists : collect())
     <div class="movie-grid">
         @forelse ($movies as $movie)
             <div class="movie-card-v2">
@@ -53,16 +62,32 @@
                     <div class="card-overlay">
                         <a href="{{ route('movie.watch', $movie->movie_id) }}" class="btn-play"><i class="fas fa-play"></i></a>
                         @auth
-                            <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="d-inline">
+                            <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="d-inline favorite-toggle-form" data-movie-id="{{ $movie->movie_id }}">
                                 @csrf
                                 <button class="btn-favorite" type="submit">
-                                    @if(auth()->user()->favorites()->where('movie_id', $movie->movie_id)->exists())
+                                    @if(auth()->user()->favorites()->wherePivot('movie_id', $movie->movie_id)->exists())
                                         <i class="fas fa-heart"></i>
                                     @else
                                         <i class="far fa-heart"></i>
                                     @endif
                                 </button>
                             </form>
+                            {{-- Add to playlist dropdown --}}
+                            <div class="dropdown d-inline">
+                                <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="dd-{{ $movie->movie_id }}" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                    <i class="fas fa-plus"></i>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-right" aria-labelledby="dd-{{ $movie->movie_id }}">
+                                    @forelse($userPlaylists as $pl)
+                                        <form method="POST" action="{{ route('playlists.movies.add', [$pl->id, $movie->movie_id]) }}">
+                                            @csrf
+                                            <button type="submit" class="dropdown-item">{{ $pl->name }}</button>
+                                        </form>
+                                    @empty
+                                        <a class="dropdown-item" href="{{ route('playlists.index') }}">Tạo playlist mới…</a>
+                                    @endforelse
+                                </div>
+                            </div>
                         @endauth
                     </div>
                 </div>
@@ -81,7 +106,7 @@
                         <div class="hp-actions">
                             <a href="{{ route('movie.watch', $movie->movie_id) }}" class="btn btn-primary btn-sm"><i class="fas fa-play"></i> Xem ngay</a>
                             @auth
-                                <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="d-inline">
+                                <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="d-inline favorite-toggle-form" data-movie-id="{{ $movie->movie_id }}">
                                     @csrf
                                     <button class="btn btn-outline-light btn-sm" type="submit"><i class="far fa-heart"></i> Thích</button>
                                 </form>

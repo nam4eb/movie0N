@@ -40,6 +40,9 @@
 					</div>
 					<div class="desc-content col-10 text-left">
 						<h2>{{ $movie->movie_name }}</h2>
+						<div class="meta text-muted" style="margin-bottom:6px;">
+							{{ $movie->category->cat_name ?? 'Movie' }} • {{ $movie->genre->genre_name ?? 'Genre' }} • {{ $movie->country->country_name ?? 'Unknown' }} • {{ $movie->release_year ?? $movie->created_at?->format('Y') }}
+						</div>
 						<p>{{ $movie->description }}</p>
 					</div>
 				</div>

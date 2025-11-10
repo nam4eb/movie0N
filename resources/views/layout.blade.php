@@ -4,6 +4,7 @@
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <title>movie0N</title>
     <!-- Google Font: Momo Trust Display -->
@@ -243,5 +244,50 @@
             });
         })();
     </script>
+        <script>
+            // AJAX toggle favorites without page reload
+            (function(){
+                $(document).on('submit', '.favorite-toggle-form', function(e){
+                    e.preventDefault();
+                    const $form = $(this);
+                    const url = $form.attr('action');
+                    const movieId = $form.data('movie-id');
+                    const $btn = $form.find('button[type="submit"]');
+                    $btn.prop('disabled', true);
+                    $.ajax({
+                        url: url,
+                        method: 'POST',
+                        data: $form.serialize(),
+                        dataType: 'json',
+                        headers: {
+                            'X-Requested-With': 'XMLHttpRequest',
+                            'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content'),
+                            'Accept': 'application/json'
+                        }
+                    }).done(function(res){
+                        const favorited = res && res.favorited;
+                        // Toggle all icons of the same movie across the page
+                        const $forms = movieId ? $(`.favorite-toggle-form[data-movie-id='${movieId}']`) : $form;
+                        $forms.each(function(){
+                            const $f = $(this);
+                            const $i = $f.find('button[type="submit"] i');
+                            if (favorited) {
+                                $i.removeClass('far').addClass('fas');
+                            } else {
+                                $i.removeClass('fas').addClass('far');
+                            }
+                        });
+                    }).fail(function(xhr){
+                        if (xhr.status === 401) {
+                            window.location.href = '{{ route('login') }}';
+                            return;
+                        }
+                        console.log('Favorite toggle failed', xhr.status, xhr.responseText);
+                    }).always(function(){
+                        $btn.prop('disabled', false);
+                    });
+                });
+            })();
+        </script>
 </body>
 </html>

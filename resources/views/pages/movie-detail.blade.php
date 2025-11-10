@@ -13,20 +13,37 @@
                     </div>
                     <div class="info">
                         <h1 class="movie-title">{{ $movie->movie_name }}</h1>
-                        <div class="meta">The Mandalorian</div>
+                        <div class="meta">{{ $movie->country->country_name ?? 'Unknown' }} • {{ $movie->release_year ?? $movie->created_at?->format('Y') }}</div>
                         <div class="actions">
                             <a href="{{ route('movie.watch', $movie->movie_id) }}" class="btn btn-primary btn-lg"><i class="fas fa-play"></i> Xem Ngay</a>
                             @auth
-                                <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="d-inline">
+                                <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="d-inline favorite-toggle-form">
                                     @csrf
                                     <button class="btn btn-icon" type="submit" title="Yêu thích">
-                                        @if(auth()->user()->favorites()->where('movie_id', $movie->movie_id)->exists())
+                                        @if(auth()->user()->favorites()->wherePivot('movie_id', $movie->movie_id)->exists())
                                             <i class="fas fa-heart"></i>
                                         @else
                                             <i class="far fa-heart"></i>
                                         @endif
                                     </button>
                                 </form>
+
+                                {{-- Add to Playlist dropdown --}}
+                                <div class="dropdown d-inline">
+                                    <button class="btn btn-icon dropdown-toggle" type="button" id="addToPlaylist" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" title="Thêm vào playlist">
+                                        <i class="fas fa-plus"></i>
+                                    </button>
+                                    <div class="dropdown-menu dropdown-menu-right" aria-labelledby="addToPlaylist">
+                                        @forelse($playlists as $pl)
+                                            <form method="POST" action="{{ route('playlists.movies.add', [$pl->id, $movie->movie_id]) }}">
+                                                @csrf
+                                                <button type="submit" class="dropdown-item">{{ $pl->name }}</button>
+                                            </form>
+                                        @empty
+                                            <a class="dropdown-item" href="{{ route('playlists.index') }}">Tạo playlist mới…</a>
+                                        @endforelse
+                                    </div>
+                                </div>
                             @endauth
                             <button class="btn btn-icon" title="Chia sẻ"><i class="fas fa-share-alt"></i></button>
                             <button class="btn btn-icon" title="Bình luận"><i class="fas fa-comment"></i></button>

@@ -44,8 +44,11 @@ Route::post('/movies/{movie:movie_id}/comments', [\App\Http\Controllers\CommentC
 
 // Playlists
 Route::get('/playlists', [\App\Http\Controllers\PlaylistController::class, 'index'])->name('playlists.index');
+Route::get('/playlists/{playlist}', [\App\Http\Controllers\PlaylistController::class, 'show'])->name('playlists.show');
 Route::post('/playlists', [\App\Http\Controllers\PlaylistController::class, 'store'])->name('playlists.store');
+// Add movie to playlist (support both URL param and body param)
 Route::post('/playlists/{playlist}/movies/{movie:movie_id}', [\App\Http\Controllers\PlaylistController::class, 'addMovie'])->name('playlists.movies.add');
+Route::post('/playlists/{playlist}/movies', [\App\Http\Controllers\PlaylistController::class, 'addMovieById'])->name('playlists.movies.add.body');
 
 // User Profile
 Route::get('/profile', [\App\Http\Controllers\UserController::class, 'show'])->name('profile.show');

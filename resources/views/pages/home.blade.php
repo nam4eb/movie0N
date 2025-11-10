@@ -8,7 +8,7 @@
             @if(isset($featuredMovie))
                 <div class="hero-section" id="heroSection" style="background-image:url('{{ asset('img/' . $featuredMovie->image) }}')">
                     <div class="hero-content">
-                        <div class="text-muted small mb-2">{{ $featuredMovie->country->country_name ?? 'Movie' }} • {{ $featuredMovie->created_at?->format('Y') }}</div>
+                        <div class="text-muted small mb-2">{{ $featuredMovie->country->country_name ?? 'Movie' }} • {{ $featuredMovie->release_year ?? $featuredMovie->created_at?->format('Y') }}</div>
                         <h1 class="hero-title">{{ strtoupper($featuredMovie->movie_name) }}</h1>
                         <div class="hero-description">{{ \Illuminate\Support\Str::limit($featuredMovie->description, 180) }}</div>
                         <div class="hero-buttons">
@@ -57,7 +57,7 @@
                             <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
                             <div class="wide-meta">
                                 <div class="title">{{ $m->movie_name }}</div>
-                                <div class="sub">{{ $m->country->country_name ?? 'Movie' }} • {{ $m->created_at?->format('Y') }}</div>
+                                <div class="sub">{{ $m->country->country_name ?? 'Movie' }} • {{ $m->release_year ?? $m->created_at?->format('Y') }}</div>
                             </div>
                         </a>
                     @endforeach
@@ -177,7 +177,7 @@
                                 <div class="movie-feature d-flex">
                                     <a class="btn btn-md btn-light" href="{{ route('movies.show', $movie->movie_id) }}">Watch <i class="fas fa-play"></i></a>
                                     @auth
-                                    <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" style="margin-left:6px;">
+                                    <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="favorite-toggle-form" data-movie-id="{{ $movie->movie_id }}" style="margin-left:6px;">
                                         @csrf
                                         <button class="btn btn-md btn-danger" type="submit">
                                             @if(auth()->user()->favorites->contains($movie->movie_id))
@@ -187,7 +187,7 @@
                                             @endif
                                         </button>
                                     </form>
-                                    <button class="btn btn-md btn-success" style="margin-left:6px;" data-toggle="modal" data-target="#playlistModalHome" data-movie-id="{{ $movie->movie_id }}" data-movie-name="{{ $movie->movie_name }}">
+                                    <button class="btn btn-md btn-success add-to-playlist-btn" style="margin-left:6px;" data-toggle="modal" data-target="#playlistModalHome" data-movie-id="{{ $movie->movie_id }}" data-movie-name="{{ $movie->movie_name }}">
                                         <i class="far fa-plus-square"></i>
                                     </button>
                                     @endauth
@@ -208,7 +208,7 @@
                                 <div class="movie-feature d-flex">
                                     <a class="btn btn-md btn-light" href="{{ route('movies.show', $movie->movie_id) }}">Watch <i class="fas fa-play"></i></a>
                                     @auth
-                                    <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" style="margin-left:6px;">
+                                    <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="favorite-toggle-form" style="margin-left:6px;">
                                         @csrf
                                         <button class="btn btn-md btn-danger" type="submit">
                                             @if(auth()->user()->favorites->contains($movie->movie_id))
@@ -240,7 +240,7 @@
                                 <div class="movie-feature d-flex">
                                     <a class="btn btn-md btn-light" href="{{ route('movies.show', $movie->movie_id) }}">Watch <i class="fas fa-play"></i></a>
                                     @auth
-                                    <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" style="margin-left:6px;">
+                                    <form method="POST" action="{{ route('favorites.toggle', $movie->movie_id) }}" class="favorite-toggle-form" style="margin-left:6px;">
                                         @csrf
                                         <button class="btn btn-md btn-danger" type="submit">
                                             @if(auth()->user()->favorites->contains($movie->movie_id))
@@ -268,7 +268,7 @@
                     <h2>Kho tàng Anime mới nhất</h2>
                     <div class="hero-section" id="animeHero" style="background-image:url('{{ asset('img/' . $spot->image) }}'); height:420px;">
                         <div class="hero-content">
-                            <div class="text-muted small mb-2">Anime • {{ $spot->created_at?->format('Y') }}</div>
+                            <div class="text-muted small mb-2">Anime • {{ $spot->release_year ?? $spot->created_at?->format('Y') }}</div>
                             <h2 class="hero-title" style="font-size:2.2rem;">{{ $spot->movie_name }}</h2>
                             <div class="hero-description">{{ \Illuminate\Support\Str::limit($spot->description, 150) }}</div>
                             <div class="hero-buttons">
@@ -308,8 +308,9 @@
       <div class="modal-body">
         <h6>Your Playlists</h6>
         @forelse(($playlists ?? collect()) as $playlist)
-            <form action="/playlists/{{ $playlist->id }}/movies/__MOVIE_ID__" method="POST" class="d-inline playlist-add-form mb-2" data-base="/playlists/{{ $playlist->id }}/movies/">
+            <form action="/playlists/{{ $playlist->id }}/movies" data-base-action="/playlists/{{ $playlist->id }}/movies" method="POST" class="d-inline playlist-add-form mb-2">
                 @csrf
+                <input type="hidden" name="movie_id" value="">
                 <button type="submit" class="btn btn-sm btn-outline-light">{{ $playlist->name }}</button>
             </form>
         @empty
@@ -333,6 +334,19 @@
 
 <script>
 (function(){
+    // Simple toast helper
+    function showToast(message, type){
+        const $t = $('<div/>', { class: 'alert alert-'+(type||'success'),
+            text: message,
+            css: {
+                position:'fixed', right:'16px', top:'16px', zIndex: 9999,
+                minWidth:'260px', background:'#1e293b', color:'#fff', border:'1px solid #334155'
+            }
+        });
+        $('body').append($t);
+        setTimeout(()=>{ $t.fadeOut(300, ()=> $t.remove()); }, 2000);
+    }
+
     // Attach data to modal from clicked button
     $(document).on('click', '.add-to-playlist-btn', function(){
         const movieId = $(this).data('movie-id');
@@ -342,12 +356,74 @@
     });
 
     // When modal is shown, update form actions with movie id
-    $('#playlistModalHome').on('show.bs.modal', function(){
-        const mid = $(this).data('movie-id');
-        $(this).find('form.playlist-add-form').each(function(){
-            const base = $(this).attr('data-base');
-            $(this).attr('action', base + mid);
+    $('#playlistModalHome').on('show.bs.modal', function(e){
+        // Prefer movie id from the clicked trigger
+        const trigger = $(e.relatedTarget);
+        const mid = trigger && trigger.data('movie-id') ? trigger.data('movie-id') : $(this).data('movie-id');
+        if (!mid) return; // Avoid writing 'undefined' in URL
+        const $modal = $(this);
+        // Update each form: set hidden input and ensure action targets route with movie id in path
+        $modal.find('form.playlist-add-form').each(function(){
+            const $form = $(this);
+            const base = $form.data('base-action') || $form.attr('action');
+            // Always use body endpoint /playlists/{id}/movies
+            if (base) {
+                $form.attr('action', base.replace(/\/$/, ''));
+            }
+            $form.find('input[name="movie_id"]').val(mid);
         });
+    });
+
+    // Submit add-to-playlist via AJAX and show confirmation
+    $(document).on('submit', 'form.playlist-add-form', function(e){
+        e.preventDefault();
+        const $form = $(this);
+        let url = $form.attr('action');
+        // Always use body endpoint /playlists/{id}/movies with movie_id in body
+        const mid = $('#playlistModalHome').data('movie-id');
+        if (mid) {
+            $form.find('input[name="movie_id"]').val(mid);
+        }
+        const data = $form.serialize();
+        const $btn = $form.find('button[type="submit"]');
+        $btn.prop('disabled', true);
+        $.ajax({ url: url, method: 'POST', data: data, dataType: 'json', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
+            .done(function(res){
+                const msg = (res && res.message) ? res.message : 'Đã thêm vào playlist.';
+                showToast(msg, 'success');
+                $('#playlistModalHome').modal('hide');
+            })
+            .fail(function(xhr){
+                // If route-model-binding 404, fallback to body endpoint /playlists/{id}/movies
+                const bodyText = (xhr && (xhr.responseText || '')) + '';
+                if (xhr.status === 404 && /No query results for model|NotFoundHttpException/i.test(bodyText) && !$form.data('retried')) {
+                    const base = $form.data('base-action') || ($form.attr('action') || '').replace(/\/(\d+)$/, '');
+                    $form.data('retried', true);
+                    $.ajax({ url: base, method: 'POST', data: $form.serialize(), dataType: 'json', headers: { 'Accept': 'application/json', 'X-Requested-With': 'XMLHttpRequest', 'X-CSRF-TOKEN': $('meta[name="csrf-token"]').attr('content') } })
+                        .done(function(res2){
+                            const msg2 = (res2 && res2.message) ? res2.message : 'Đã thêm vào playlist.';
+                            showToast(msg2, 'success');
+                            $('#playlistModalHome').modal('hide');
+                        })
+                        .fail(function(xhr2){
+                            let msg2 = 'Có lỗi xảy ra. Vui lòng thử lại.';
+                            if (xhr2.status === 419) msg2 = 'Phiên làm việc hết hạn, hãy tải lại trang.';
+                            else if (xhr2.status === 403) msg2 = 'Bạn không có quyền thực hiện thao tác này.';
+                            else if (xhr2.status === 404) msg2 = 'Không tìm thấy phim. Hãy tải lại trang rồi thử lại.';
+                            console.log('Add to playlist fallback failed', xhr2.status, xhr2.responseText);
+                            showToast(msg2, 'danger');
+                        })
+                        .always(function(){ $btn.prop('disabled', false); });
+                    return; // Stop here; we handled retry
+                }
+                let msg = 'Có lỗi xảy ra. Vui lòng thử lại.';
+                if (xhr.status === 419) msg = 'Phiên làm việc hết hạn, hãy tải lại trang.';
+                else if (xhr.status === 403) msg = 'Bạn không có quyền thực hiện thao tác này.';
+                else if (xhr.status === 404) msg = 'Không tìm thấy phim. Hãy tải lại trang rồi thử lại.';
+                console.log('Add to playlist failed', xhr.status, xhr.responseText);
+                showToast(msg, 'danger');
+            })
+            .always(function(){ $btn.prop('disabled', false); });
     });
 })();
 </script>

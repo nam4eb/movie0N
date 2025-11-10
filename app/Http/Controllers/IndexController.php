@@ -21,9 +21,18 @@ class IndexController extends Controller
         // Topics / chips
         $topGenres = Genre::orderBy('genre_name')->take(7)->get();
 
-        // Fetch categories & country to dynamically find their IDs
-        $movieCat = Category::where('cat_name', 'like', '%movie%')->first();
-        $tvSeriesCat = Category::where('cat_name', 'like', '%series%')->first();
+        // Fetch categories & country to dynamically find their IDs (support EN + VI names)
+        $movieCat = Category::where(function($q){
+                $q->where('cat_name','like','%movie%')
+                  ->orWhere('cat_name','like','%phim lẻ%')
+                  ->orWhere('cat_name','like','%phim le%');
+            })->first();
+        $tvSeriesCat = Category::where(function($q){
+                $q->where('cat_name','like','%series%')
+                  ->orWhere('cat_name','like','%tv%')
+                  ->orWhere('cat_name','like','%phim bộ%')
+                  ->orWhere('cat_name','like','%phim bo%');
+            })->first();
         $korea = Country::where('country_name', 'like', '%korea%')->first();
 
         $topMovies = $movieCat ? Movie::where('cat_id', $movieCat->cat_id)->latest()->take(10)->get() : collect();
@@ -153,6 +162,9 @@ class IndexController extends Controller
         if ($request->filled('genre')) {
             $query->where('genre_id', (int) $request->input('genre'));
         }
+        if ($request->filled('year')) {
+            $query->where('release_year', (int) $request->input('year'));
+        }
         if ($request->filled('status')) {
             $query->where('status', (int) $request->input('status'));
         }
@@ -235,12 +247,13 @@ class IndexController extends Controller
         return view('pages.profile');
     }
 
-    // Favorite movies page (requires auth)
+    // My List page: favorites + playlists (requires auth)
     public function favorites()
     {
         $user = Auth::user();
         $movies = $user ? $user->favorites()->latest()->paginate(12) : collect();
-        return view('pages.favorites', compact('movies'));
+        $playlists = $user ? $user->playlists()->with(['movies' => function($q){ $q->latest(); }])->withCount('movies')->get() : collect();
+        return view('pages.favorites', compact('movies', 'playlists'));
     }
 
     // Suggest movies for search overlay (JSON)
