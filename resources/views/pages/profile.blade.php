@@ -6,7 +6,10 @@
     <div class="row justify-content-center">
         <div class="col-md-8">
             <div class="card" style="background:#0c0e12; border-radius:15px; padding: 30px;">
-                <h2 class="mb-4" style="color: #bfa511;">Edit Your Profile</h2>
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0" style="color: #bfa511;">{{ __('messages.edit_your_profile') }}</h2>
+                    <a href="{{ route('users.profile', $me) }}" class="btn btn-sm btn-outline-light">{{ __('messages.view_public_profile') }}</a>
+                </div>
 
                 @if(session('success'))
                     <div class="alert alert-success">
@@ -24,9 +27,18 @@
                     </div>
                 @endif
 
-                <form action="{{ route('profile.update') }}" method="POST">
+                <form action="{{ route('profile.update') }}" method="POST" enctype="multipart/form-data">
                     @csrf
                     @method('PUT')
+
+                    <!-- Avatar -->
+                    <div class="form-group">
+                        <label for="avatar">{{ __('messages.profile_picture') }}</label>
+                        <div class="d-flex align-items-center">
+                            <img src="{{ $me->avatar ? asset('storage/' . $me->avatar) : 'https://via.placeholder.com/150' }}" alt="Avatar" class="rounded-circle" width="80" height="80">
+                            <input type="file" name="avatar" id="avatar" class="form-control-file ml-3">
+                        </div>
+                    </div>
 
                     <!-- Name -->
                     <div class="form-group">
@@ -42,22 +54,22 @@
 
                     <hr style="border-color: #444;">
 
-                    <h5 class="mt-4">Change Password</h5>
-                    <p><small>Leave blank if you don't want to change your password.</small></p>
+                    <h5 class="mt-4">{{ __('messages.change_password') }}</h5>
+                    <p><small>{{ __('messages.leave_blank_password') }}</small></p>
 
                     <!-- Password -->
                     <div class="form-group">
-                        <label for="password">New Password</label>
+                        <label for="password">{{ __('messages.new_password') }}</label>
                         <input type="password" name="password" id="password" class="form-control" style="background: #222; color: #fff; border-color: #444;">
                     </div>
 
                     <!-- Confirm Password -->
                     <div class="form-group">
-                        <label for="password_confirmation">Confirm New Password</label>
+                        <label for="password_confirmation">{{ __('messages.confirm_new_password') }}</label>
                         <input type="password" name="password_confirmation" id="password_confirmation" class="form-control" style="background: #222; color: #fff; border-color: #444;">
                     </div>
 
-                    <button type="submit" class="btn btn-primary mt-3">Update Profile</button>
+                    <button type="submit" class="btn btn-primary mt-3">{{ __('messages.update_profile') }}</button>
                 </form>
             </div>
         </div>

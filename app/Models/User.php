@@ -11,10 +11,11 @@ use App\Models\Comment;
 use App\Models\Playlist;
 
 use Laravel\Sanctum\HasApiTokens;
+use Spatie\Permission\Traits\HasRoles;
 
-class User extends Authenticatable
+class User extends Authenticatable implements MustVerifyEmail
 {
-    use HasApiTokens, HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable, HasRoles;
 
     /**
      * The attributes that are mass assignable.
@@ -25,6 +26,7 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'avatar',
     ];
 
     /**
@@ -68,6 +70,24 @@ class User extends Authenticatable
     public function playlists()
     {
         return $this->hasMany(Playlist::class);
+    }
+
+
+    /**
+     * The movies that the user is following.
+     */
+    public function follows()
+    {
+        return $this->belongsToMany(Movie::class, 'follows', 'user_id', 'movie_id')->withTimestamps();
+    }
+
+
+    /**
+     * The ratings that the user has submitted.
+     */
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class);
     }
 
 }

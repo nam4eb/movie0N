@@ -1,5 +1,12 @@
 <?php
 
+Route::get('language/{locale}', function ($locale) {
+    app()->setLocale($locale);
+    session()->put('locale', $locale);
+    return redirect()->back();
+})->name('language.switch');
+
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Http\Request;
 use App\Http\Controllers\IndexController;
@@ -22,6 +29,10 @@ Route::get('/home', [IndexController::class, 'home']);
 // Search suggestions API for overlay
 Route::get('/search/suggest', [IndexController::class, 'searchSuggestions'])->name('search.suggest');
 
+
+// Full search results page
+Route::get('/search', [IndexController::class, 'search'])->name('search.full');
+
 // Movies listing and detail (dynamic)
 Route::get('/movies', [IndexController::class, 'movies'])->name('movies.index');
 Route::get('/movies/{movie:movie_id}', [IndexController::class, 'movieDetail'])->name('movies.show');
@@ -37,32 +48,48 @@ Route::get('/tv-shows', [IndexController::class, 'tvShows'])->name('tvshows.inde
 Route::get('/news', [\App\Http\Controllers\NewsController::class, 'index'])->name('news.index');
 Route::get('/news/{slug}', [\App\Http\Controllers\NewsController::class, 'show'])->name('news.show');
 
-// Comments
-Route::post('/movies/{movie:movie_id}/comments', [\App\Http\Controllers\CommentController::class, 'store'])
-    ->middleware('auth')
-    ->name('comments.store');
-
-// Playlists
+// Public routes that might have authenticated states
 Route::get('/playlists', [\App\Http\Controllers\PlaylistController::class, 'index'])->name('playlists.index');
 Route::get('/playlists/{playlist}', [\App\Http\Controllers\PlaylistController::class, 'show'])->name('playlists.show');
-Route::post('/playlists', [\App\Http\Controllers\PlaylistController::class, 'store'])->name('playlists.store');
-// Add movie to playlist (support both URL param and body param)
-Route::post('/playlists/{playlist}/movies/{movie:movie_id}', [\App\Http\Controllers\PlaylistController::class, 'addMovie'])->name('playlists.movies.add');
-Route::post('/playlists/{playlist}/movies', [\App\Http\Controllers\PlaylistController::class, 'addMovieById'])->name('playlists.movies.add.body');
-
-// User Profile
-Route::get('/profile', [\App\Http\Controllers\UserController::class, 'show'])->name('profile.show');
-Route::put('/profile', [\App\Http\Controllers\UserController::class, 'update'])->name('profile.update');
-
 Route::get('/movies/{movie:movie_id}/watch', [IndexController::class, 'watchMovie'])->name('movie.watch');
 
 // Backward compatible alias for old route name used in some views
 Route::get('/movie-detail', fn () => redirect()->route('movies.index'))->name('movie.detail');
 
-// Favorites toggle
-Route::post('/favorites/{movie:movie_id}/toggle', [\App\Http\Controllers\FavoriteController::class, 'toggle'])
-    ->middleware('auth')
-    ->name('favorites.toggle');
+// Authenticated routes
+Route::middleware(['auth', 'verified'])->group(function () {
+    // Comments
+    Route::post('/movies/{movie:movie_id}/comments', [\App\Http\Controllers\CommentController::class, 'store'])->name('comments.store');
+
+    // Playlists
+    Route::post('/playlists', [\App\Http\Controllers\PlaylistController::class, 'store'])->name('playlists.store');
+    Route::post('/playlists/{playlist}/movies/{movie:movie_id}', [\App\Http\Controllers\PlaylistController::class, 'addMovie'])->name('playlists.movies.add');
+    Route::post('/playlists/{playlist}/movies', [\App\Http\Controllers\PlaylistController::class, 'addMovieById'])->name('playlists.movies.add.body');
+
+    // User Profile
+    Route::get('/profile', [\App\Http\Controllers\UserController::class, 'show'])->name('profile.show');
+    Route::put('/profile', [\App\Http\Controllers\UserController::class, 'update'])->name('profile.update');
+
+    // Favorites toggle
+    Route::post('/favorites/{movie:movie_id}/toggle', [\App\Http\Controllers\FavoriteController::class, 'toggle'])->name('favorites.toggle');
+
+    // Follow/unfollow a movie
+    Route::post('/movies/{movie:movie_id}/follow', [\App\Http\Controllers\FollowController::class, 'toggle'])->name('movies.follow');
+
+    // Notifications
+    Route::prefix('notifications')->name('notifications.')->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificationController::class, 'index'])->name('index');
+    });
+
+    // Save watching progress (AJAX)
+    Route::post('/progress', [\App\Http\Controllers\ProgressController::class, 'store'])->name('progress.store');
+
+    // User pages
+    Route::get('/favorites', [IndexController::class, 'favorites'])->name('favorites');
+
+    // Rate a movie
+    Route::post('/movies/{movie:movie_id}/rate', [\App\Http\Controllers\RatingController::class, 'store'])->name('movies.rate');
+});
 
 // Compatibility for legacy links like index.php?module=movie-detail
 Route::get('/index.php', function (Request $request) {
@@ -74,5 +101,6 @@ Route::get('/index.php', function (Request $request) {
     };
 });
 
-// User pages
-Route::get('/favorites', [IndexController::class, 'favorites'])->name('favorites')->middleware('auth');
+
+// Public user profile
+Route::get('/users/{user}', [\App\Http\Controllers\UserController::class, 'publicProfile'])->name('users.profile');

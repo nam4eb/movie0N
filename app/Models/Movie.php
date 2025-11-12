@@ -60,4 +60,26 @@ class Movie extends Model
     {
         return $this->belongsTo(Genre::class, 'genre_id', 'genre_id');
     }
+
+    public function followers()
+    {
+        return $this->belongsToMany(User::class, 'follows', 'movie_id', 'user_id')->withTimestamps();
+    }
+
+    public function episodes()
+    {
+        return $this->hasMany(Episode::class, 'movie_id', 'movie_id');
+    }
+
+    public function ratings()
+    {
+        return $this->hasMany(Rating::class, 'movie_id', 'movie_id');
+    }
+
+    public function views()
+    {
+        return $this->hasMany(MovieView::class, 'movie_id', 'movie_id');
+    }
 }
+
+

@@ -19,6 +19,7 @@ class DatabaseSeeder extends Seeder
             CountrySeeder::class,
             GenreSeeder::class,
             MovieSeeder::class,
+            RolesAndPermissionsSeeder::class, // Roles must be created before users
             UserSeeder::class,
             NewsSeeder::class,
             MovieViewsSeeder::class,

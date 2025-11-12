@@ -11,7 +11,7 @@ class UserController extends Controller
 {
     public function __construct()
     {
-        $this->middleware('auth');
+        $this->middleware('auth')->except('publicProfile');
     }
 
     public function show()
@@ -27,17 +27,31 @@ class UserController extends Controller
             'name' => 'required|string|max:255',
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users')->ignore($user->id)],
             'password' => 'nullable|string|min:8|confirmed',
+            'avatar' => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
-        $user->name = $request->name;
-        $user->email = $request->email;
+        $data = $request->only('name', 'email');
 
         if ($request->filled('password')) {
-            $user->password = Hash::make($request->password);
+            $data['password'] = Hash::make($request->password);
         }
 
-        $user->save();
+        if ($request->hasFile('avatar')) {
+            $path = $request->file('avatar')->store('avatars', 'public');
+            $data['avatar'] = $path;
+        }
+
+        $user->update($data);
 
         return back()->with('success', 'Profile updated successfully.');
     }
+
+    public function publicProfile(\App\Models\User $user)
+    {
+        $recentComments = $user->comments()->with('movie')->latest()->take(5)->get();
+        $favoriteMovies = $user->favorites()->latest()->take(10)->get();
+
+        return view('pages.public-profile', compact('user', 'recentComments', 'favoriteMovies'));
+    }
+
 }

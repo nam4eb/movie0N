@@ -50,7 +50,7 @@
             {{-- Theatrical highlights (Phim Chiếu Rạp) --}}
             @if(isset($theatricalHighlights) && $theatricalHighlights->count())
             <div class="movie-list">
-                <h2>Mãn nhãn với Phim Chiếu Rạp</h2>
+                <h2>{{ __('messages.latest_movies') }}</h2>
                 <div class="wide-scroll" id="theatricalScroll">
                     @foreach($theatricalHighlights as $m)
                         <a class="wide-card" href="{{ route('movies.show', $m->movie_id) }}">
@@ -72,7 +72,7 @@
             {{-- Top 10 phim là hôm nay --}}
             @if(isset($topToday) && $topToday->count())
             <div class="movie-list">
-                <h2>Top 10 phim là hôm nay</h2>
+                <h2>{{ __('messages.top_movies_today') }}</h2>
                 <div class="rank-grid">
                     @foreach($topToday as $row)
                         @php($m = $row->movie)
@@ -92,7 +92,7 @@
             {{-- Phim Nhật mới oanh tạc chốn này --}}
             @if(isset($latestJapan) && $latestJapan->count())
             <div class="movie-list">
-                <h2>Phim Nhật Mới Oanh Tạc Chốn Này</h2>
+                <h2>{{ __('messages.latest_japanese_movies') }}</h2>
                 <div class="wide-scroll" id="japanScroll">
                     @foreach($latestJapan as $m)
                         <a class="poster-card" href="{{ route('movies.show', $m->movie_id) }}">
@@ -146,11 +146,49 @@
                 });
             </script>
 
+                @if(isset($continueWatching) && $continueWatching->count())
+                <div class="movie-list">
+                    <h2>{{ __('messages.continue_watching') }}</h2>
+                    <div class="wide-scroll" id="continueScroll">
+                        @foreach($continueWatching as $cw)
+                            @php($m = $cw->movie)
+                            <a class="wide-card" href="{{ route('movie.watch', $m->movie_id) }}@if($cw->episode_id)?ep={{ $cw->episode_id }}@endif">
+                                <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
+                                <div class="wide-meta">
+                                    <div class="title">{{ $m->movie_name }}</div>
+                                    @php($pct = $cw->duration ? min(100, intval($cw->position*100/ max(1,$cw->duration))) : 0)
+                                    <div class="sub">Đang xem • {{ $pct }}%</div>
+                                    <div class="progress" style="height:4px;background:#333;margin-top:6px;border-radius:2px;overflow:hidden;">
+                                        <div style="width: {{ $pct }}%; height:100%; background:#f59e0b;"></div>
+                                    </div>
+                                </div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+                @if(isset($recommended) && $recommended->count())
+                <div class="movie-list">
+                    <h2>{{ __('messages.because_you_watched') }}</h2>
+                    <div class="wide-scroll" id="recommendScroll">
+                        @foreach($recommended as $m)
+                            <a class="poster-card" href="{{ route('movies.show', $m->movie_id) }}">
+                                <img src="{{ asset('img/' . $m->image) }}" alt="{{ $m->movie_name }}">
+                                <div class="p-title">{{ $m->movie_name }}</div>
+                            </a>
+                        @endforeach
+                    </div>
+                </div>
+                @endif
+
+
+
 
             {{-- Coming soon horizontal list --}}
             @if(isset($comingSoonMovies) && $comingSoonMovies->count())
             <div class="movie-list" style="margin-top:10px;">
-                <h2>Phim sắp tới trên rạp</h2>
+                <h2>{{ __('messages.coming_soon') }}</h2>
                 <div class="coming-soon-horizontal">
                     @foreach($comingSoonMovies as $m)
                         <div class="cs-card">
@@ -168,7 +206,7 @@
             <div class="movie-list-section">
                 {{-- Top Movies --}}
                 <div class="movie-list">
-                    <h2>TOP MOVIE THIS WEEK <i class="glyphicon glyphicon-fire"></i></h2>
+                    <h2>{{ __('messages.latest_movies') }} <i class="glyphicon glyphicon-fire"></i></h2>
                     <div class="movie-grid">
                         @foreach(($topMovies ?? collect()) as $movie)
                             <div class="movie-card">
@@ -199,7 +237,7 @@
 
                 {{-- Top TV Series --}}
                 <div class="movie-list tv-series">
-                    <h2>TOP TV SERIES THIS WEEK <i class="glyphicon glyphicon-fire"></i></h2>
+                    <h2>{{ __('messages.latest_tv_shows') }} <i class="glyphicon glyphicon-fire"></i></h2>
                     <div class="movie-grid">
                         @foreach(($topTvSeries ?? collect()) as $movie)
                             <div class="movie-card">
@@ -231,7 +269,7 @@
                 {{-- Top Korean TV Series --}}
                 @if(isset($topKoreanTvSeries) && $topKoreanTvSeries->count())
                 <div class="movie-list korean-tv-series">
-                    <h2>TOP KOREAN TV SERIES <i class="glyphicon glyphicon-fire"></i></h2>
+                    <h2>{{ __('messages.korean_dramas') }} <i class="glyphicon glyphicon-fire"></i></h2>
                     <div class="movie-grid">
                         @foreach($topKoreanTvSeries as $movie)
                             <div class="movie-card">
@@ -265,7 +303,7 @@
                 @if(isset($latestAnime) && $latestAnime->count())
                 @php($spot = $latestAnime->first())
                 <div class="movie-list" style="margin-top:25px;">
-                    <h2>Kho tàng Anime mới nhất</h2>
+                    <h2>{{ __('messages.latest_anime') }}</h2>
                     <div class="hero-section" id="animeHero" style="background-image:url('{{ asset('img/' . $spot->image) }}'); height:420px;">
                         <div class="hero-content">
                             <div class="text-muted small mb-2">Anime • {{ $spot->release_year ?? $spot->created_at?->format('Y') }}</div>
@@ -434,7 +472,7 @@
         {{-- Sidebar (kept as original style) --}}
         <div class="col-lg-3 sidebar-area">
             <div class="sidebar-widget">
-                <h4 class="widget-title">Movie coming soon <i class="fab fa-algolia"></i></h4>
+                <h4 class="widget-title">{{ __('messages.coming_soon') }} <i class="fab fa-algolia"></i></h4>
                 <div class="coming-soon-list">
                     @forelse(($comingSoonMovies ?? collect()) as $m)
                         <div class="coming-soon-item">
@@ -470,7 +508,7 @@
                 </div>
             </div>
             <div class="sidebar-widget">
-                <h4 class="widget-title">Top movie this month <i class="glyphicon glyphicon-fire"></i></h4>
+                <h4 class="widget-title">{{ __('messages.top_movies_this_month') }} <i class="glyphicon glyphicon-fire"></i></h4>
                 <div class="coming-soon-list">
                     @forelse(($topMoviesThisMonth ?? collect()) as $row)
                         @php($m = $row->movie)

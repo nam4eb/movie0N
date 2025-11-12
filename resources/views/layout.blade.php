@@ -5,6 +5,7 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="csrf-token" content="{{ csrf_token() }}">
+    @yield('meta')
 
     <title>movie0N</title>
     <!-- Google Font: Momo Trust Display -->
@@ -33,37 +34,62 @@
                         <img src="{{asset('/FE/img/logo.png')}}" alt="logo" width="48">
                     </a>
                     <ul class="navbar-nav">
-                        <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">Home</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('tvshows.index') }}">TV Shows</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('movies.index') }}">Movies</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('genres.index') }}">Genres</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('news.index') }}">New & popular</a></li>
-                        <li class="nav-item"><a class="nav-link" href="{{ route('favorites') }}">My List</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('home') }}">{{ __('messages.home') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('tvshows.index') }}">{{ __('messages.tv_shows') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('movies.index') }}">{{ __('messages.movies') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('genres.index') }}">{{ __('messages.genres') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('news.index') }}">{{ __('messages.new_popular') }}</a></li>
+                        <li class="nav-item"><a class="nav-link" href="{{ route('favorites') }}">{{ __('messages.my_list') }}</a></li>
                     </ul>
                     <form class="form-search" onsubmit="return false;">
-                        <input id="searchOpenInput" class="form-control" type="text" placeholder="Search.." readonly>
+                        <input id="searchOpenInput" class="form-control" type="text" placeholder="{{ __('messages.search') }}" readonly>
                         <i class="fas fa-search"></i>
                     </form>
                 </div>
                 <div class="nav-right">
-                    <div class="noti" id="notification-icon">
-                        <i class="material-icons">notifications</i>
+                    @auth
+                    <div class="dropdown d-inline-block" id="notification-dropdown-container">
+                        <div class="noti" id="notification-icon" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" style="cursor:pointer;">
+                            <i class="material-icons">notifications</i>
+                            <span class="badge badge-danger" id="notification-count" style="position:absolute;top:-5px;right:-5px;display:none;"></span>
+                        </div>
+                        <div class="dropdown-menu dropdown-menu-right notification-panel" aria-labelledby="notification-icon">
+                            <div class="notification-header">
+                                <h4>{{ __('messages.notifications') }}</h4>
+                            </div>
+                            <div class="notification-body" id="notification-list">
+                                <div class="text-center p-3 text-muted">{{ __('messages.loading') }}</div>
+                            </div>
+                            <div class="notification-footer">
+                                <a href="#">{{ __('messages.view_all_notifications') }}</a>
+                            </div>
+                        </div>
                     </div>
+                    @endauth
                     <div class="theme-toggle">
                         <button id="themeToggle" class="theme-chip" aria-pressed="false">
                             <i class="fas fa-moon"></i>
                         </button>
                     </div>
+                    <div class="dropdown d-inline-block">
+                        <button class="btn btn-sm btn-outline-light dropdown-toggle" type="button" id="languageSwitcher" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                            <i class="fas fa-globe"></i> {{ strtoupper(app()->getLocale()) }}
+                        </button>
+                        <div class="dropdown-menu dropdown-menu-right" aria-labelledby="languageSwitcher">
+                            <a class="dropdown-item" href="{{ route('language.switch', 'en') }}">English (EN)</a>
+                            <a class="dropdown-item" href="{{ route('language.switch', 'vi') }}">Tiếng Việt (VI)</a>
+                        </div>
+                    </div>
                     <div class="user d-flex align-items-center">
                         @guest
                             <div class="auth-buttons">
-                                <a href="{{ route('login') }}" class="btn-auth btn-login-outline"><i class="fas fa-sign-in-alt"></i> <span>Join</span></a>
+                                <a href="{{ route('login') }}" class="btn-auth btn-login-outline"><i class="fas fa-sign-in-alt"></i> <span>{{ __('messages.join') }}</span></a>
                             </div>
                         @else
                             <a href="{{ route('profile.show') }}" class="mr-2" style="color:inherit;text-decoration:none;"><i class="fas fa-user-tie"></i></a>
                             <form id="logout-form" action="{{ route('logout') }}" method="POST" class="d-inline">
                                 @csrf
-                                <button class="btn btn-danger btn-sm">Logout</button>
+                                <button class="btn btn-danger btn-sm">{{ __('messages.logout') }}</button>
                             </form>
                         @endguest
                     </div>
@@ -77,12 +103,12 @@
         <div class="search-dialog">
             <div class="search-head">
                 <i class="fas fa-search"></i>
-                <input id="searchInput" type="text" class="search-input" placeholder="Tìm phim, diễn viên, thể loại..." autocomplete="off">
+                <input id="searchInput" type="text" class="search-input" placeholder="{{ __('messages.search_placeholder') }}" autocomplete="off">
                 <button class="btn-close-search" aria-label="Close" id="searchCloseBtn"><i class="fas fa-times"></i></button>
             </div>
             <div class="search-body">
                 <div class="suggest-section">
-                    <h5 class="suggest-title">Gợi ý nổi bật</h5>
+                    <h5 class="suggest-title">{{ __('messages.featured_suggestions') }}</h5>
                     <div id="suggestGrid" class="suggest-grid"></div>
                 </div>
             </div>
@@ -91,27 +117,7 @@
 
     @yield('content')
 
-    <!-- Notification Panel -->
-    <div id="notification-panel" class="notification-panel">
-        <div class="notification-header">
-            <h4>Notifications</h4>
-            <button id="close-notification" class="close-btn"><i class="fas fa-times"></i></button>
-        </div>
-        <div class="notification-body">
-            <div class="notification-item">
-                <p><strong>New Movie Alert!</strong> The latest blockbuster is now available.</p>
-                <span>2 hours ago</span>
-            </div>
-            <div class="notification-item">
-                <p><strong>Your list updated.</strong> "Inception" was added to your list.</p>
-                <span>1 day ago</span>
-            </div>
-            <div class="notification-item">
-                <p><strong>Maintenance Alert!</strong> We will be undergoing scheduled maintenance.</p>
-                <span>3 days ago</span>
-            </div>
-        </div>
-    </div>
+
 
     <footer class="footer">
         <div class="container">
@@ -135,6 +141,12 @@
     </footer>
 
     <script>
+    window.translations = {
+        'notification_new_episode': "{{ __('messages.notification_new_episode') }}",
+        'no_suggestions': "{{ __('messages.no_suggestions') }}"
+    };
+</script>
+<script>
         // Theme toggle script
         (function() {
             const btn = document.getElementById('themeToggle');
@@ -182,7 +194,7 @@
             function render(items){
                 grid.empty();
                 if(!items || !items.length){
-                    grid.append('<div class="text-muted" style="grid-column:1/-1;padding:10px 0;">Không có gợi ý</div>');
+                    grid.append(`<div class="text-muted" style="grid-column:1/-1;padding:10px 0;">${window.translations.no_suggestions}</div>`);
                     return;
                 }
                 items.forEach(function(it){
@@ -220,28 +232,55 @@
             overlay.on('click', function(e){ if(e.target === this) close(); });
             $(document).on('keydown', function(e){ if(e.key === 'Escape') close(); });
             input.on('input', function(){ fetchSuggest($(this).val()); });
-            input.on('keydown', function(e){ if(e.key==='Enter'){ e.preventDefault(); if(currentItems[0]) location.href = currentItems[0].url; }});
-        })();
-
-        // Notification panel script
-        (function(){
-            const notificationIcon = $('#notification-icon');
-            const notificationPanel = $('#notification-panel');
-            const closeNotification = $('#close-notification');
-
-            notificationIcon.on('click', function(){
-                notificationPanel.toggleClass('open');
-            });
-
-            closeNotification.on('click', function(){
-                notificationPanel.removeClass('open');
-            });
-
-            $(document).on('click', function(event) {
-                if (!notificationPanel.is(event.target) && notificationPanel.has(event.target).length === 0 && !notificationIcon.is(event.target) && notificationIcon.has(event.target).length === 0) {
-                    notificationPanel.removeClass('open');
+            input.on('keydown', function(e){
+                if(e.key==='Enter'){
+                    e.preventDefault();
+                    const query = $(this).val();
+                    if (query) {
+                        window.location.href = '{{ route('search.full') }}?q=' + encodeURIComponent(query);
+                    }
                 }
             });
+        })();
+
+        // Dynamic Notification script
+        (function(){
+            const container = $('#notification-dropdown-container');
+            if (!container.length) return; // Only run for logged-in users
+
+            const countBadge = $('#notification-count');
+            const notifList = $('#notification-list');
+
+            function fetchNotifications(){
+                $.ajax({
+                    url: '{{ route('notifications.index') }}',
+                    method: 'GET',
+                    dataType: 'json'
+                }).done(function(notifications){
+                    notifList.empty();
+                    if (notifications && notifications.length) {
+                        countBadge.text(notifications.length).show();
+                        notifications.forEach(function(n){
+                            const item = $('<a/>', { class: 'notification-item', href: n.data.url });
+                            const message = window.translations.notification_new_episode
+                                .replace(':movie_name', `<strong>${n.data.movie_name}</strong>`)
+                                .replace(':episode_number', n.data.episode_number);
+                            item.append($('<p/>').html(message));
+                            item.append($('<span/>', { class: 'text-muted small' }).text(new Date(n.created_at).toLocaleString()));
+                            notifList.append(item);
+                        });
+                    } else {
+                        countBadge.hide();
+                        notifList.append(`<div class="text-center p-3 text-muted">{{ __('messages.no_new_notifications') }}</div>`);
+                    }
+                }).fail(function(){
+                    notifList.html(`<div class="text-center p-3 text-muted">{{ __('messages.failed_to_load_notifications') }}</div>`);
+                });
+            }
+
+            fetchNotifications();
+            // Optional: refresh notifications every minute
+            // setInterval(fetchNotifications, 60000);
         })();
     </script>
         <script>
@@ -289,5 +328,13 @@
                 });
             })();
         </script>
+
+        // Rating form auto-submit
+        (function(){
+            $(document).on('change', '#rating-form input[type="radio"]', function(){
+                $('#rating-form').submit();
+            });
+        })();
+
 </body>
 </html>

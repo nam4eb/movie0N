@@ -6,15 +6,14 @@
         <div class="filter-group">
             <div class="filter-item">
                 <select name="sort" class="form-control custom-select filter-select">
-                    <option value="created_desc" {{ request('sort')=='created_desc' ? 'selected' : '' }}>Sắp xếp: Mới nhất</option>
-                    <option value="created_asc" {{ request('sort')=='created_asc' ? 'selected' : '' }}>Sắp xếp: Cũ nhất</option>
-                    <option value="name_asc" {{ request('sort')=='name_asc' ? 'selected' : '' }}>Sắp xếp: Tên A-Z</option>
-                    <option value="name_desc" {{ request('sort')=='name_desc' ? 'selected' : '' }}>Sắp xếp: Tên Z-A</option>
+                    <option value="latest" {{ request('sort') == 'latest' || !request('sort') ? 'selected' : '' }}>{{ __('messages.sort_by_latest') }}</option>
+                    <option value="views" {{ request('sort') == 'views' ? 'selected' : '' }}>{{ __('messages.sort_by_views') }}</option>
+                    <option value="rating" {{ request('sort') == 'rating' ? 'selected' : '' }}>{{ __('messages.sort_by_rating') }}</option>
                 </select>
             </div>
             <div class="filter-item">
                 <select name="genre" class="form-control custom-select filter-select">
-                    <option value="">Tất cả thể loại</option>
+                    <option value="">{{ __('messages.all_genres') }}</option>
                     @foreach($genres as $g)
                         <option value="{{ $g->genre_id }}" {{ request()->query('genre')==$g->genre_id ? 'selected' : '' }}>{{ $g->genre_name }}</option>
                     @endforeach
@@ -22,7 +21,7 @@
             </div>
             <div class="filter-item">
                 <select name="country" class="form-control custom-select filter-select">
-                    <option value="">Tất cả quốc gia</option>
+                    <option value="">{{ __('messages.all_countries') }}</option>
                      @foreach($countries as $c)
                         <option value="{{ $c->country_id }}" {{ request()->query('country')==$c->country_id ? 'selected' : '' }}>{{ $c->country_name }}</option>
                     @endforeach
@@ -30,7 +29,7 @@
             </div>
             <div class="filter-item">
                  <select name="category" class="form-control custom-select filter-select">
-                    <option value="">Tất cả danh mục</option>
+                    <option value="">{{ __('messages.all_categories') }}</option>
                     @foreach($categories as $c)
                         <option value="{{ $c->cat_id }}" {{ request()->query('category')==$c->cat_id ? 'selected' : '' }}>{{ $c->cat_name }}</option>
                     @endforeach
@@ -38,7 +37,7 @@
             </div>
             <div class="filter-item">
                 <select name="year" class="form-control custom-select filter-select">
-                    <option value="">Năm sản xuất</option>
+                    <option value="">{{ __('messages.production_year') }}</option>
                     @for($y = now()->year; $y >= 1980; $y--)
                         <option value="{{ $y }}" {{ (string)request()->query('year')===(string)$y ? 'selected' : '' }}>{{ $y }}</option>
                     @endfor
@@ -46,8 +45,8 @@
             </div>
         </div>
         <div class="filter-actions" style="display:none;">
-            <button class="btn btn-primary" type="submit">Lọc phim</button>
-            <a class="btn btn-secondary" href="{{ route('movies.index') }}">Đặt lại</a>
+            <button class="btn btn-primary" type="submit">{{ __('messages.filter_movies') }}</button>
+            <a class="btn btn-secondary" href="{{ route('movies.index') }}">{{ __('messages.reset') }}</a>
         </div>
     </form>
 
@@ -130,7 +129,7 @@
             </div>
         @empty
             <div class="no-results">
-                <p>Không tìm thấy phim nào phù hợp.</p>
+                <p>{{ __('messages.no_movies_found') }}</p>
             </div>
         @endforelse
     </div>
