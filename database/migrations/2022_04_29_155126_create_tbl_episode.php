@@ -15,10 +15,15 @@ class CreateTblEpisode extends Migration
     {
         Schema::create('tbl_episode', function (Blueprint $table) {
             $table->Increments('eps_id');
-            $table->integer('movie_id');
-            $table->integer('eps_num');
+            $table->unsignedInteger('movie_id');
+            $table->unsignedInteger('eps_num');
+            $table->string('title')->nullable();
+            $table->string('server')->default('Default');
             $table->string('link');
+            $table->boolean('status')->default(true);
             $table->timestamps();
+            $table->unique(['movie_id', 'eps_num', 'server']);
+            $table->foreign('movie_id')->references('movie_id')->on('tbl_movie')->cascadeOnDelete();
         });
     }
 
