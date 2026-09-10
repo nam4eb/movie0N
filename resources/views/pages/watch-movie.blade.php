@@ -14,7 +14,16 @@
                         @endforeach
                     </video>
                 @else
-                    <iframe id="yt-player" class="mb-iframe" width="100%" height="500" src="{{ $embedUrl ?? 'https://www.youtube.com/embed/7-e_S63rX9E?enablejsapi=1&autoplay=1' }}" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>
+                    <iframe
+                        id="yt-player"
+                        class="mb-iframe"
+                        width="100%"
+                        height="500"
+                        src="https://www.youtube.com/embed/z50hkrXG50I?autoplay=1&mute=1&rel=0"
+                        frameborder="0"
+                        allow="autoplay; encrypted-media"
+                        allowfullscreen
+                    ></iframe>
                 @endif
             </div>
 

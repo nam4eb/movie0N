@@ -249,7 +249,7 @@ class IndexController extends Controller
         // Player decision & subtitles
         $playerType = 'youtube';
         $videoSrc = null;
-        $embedUrl = 'https://www.youtube.com/embed/7-e_S63rX9E?enablejsapi=1&autoplay=1';
+        $embedUrl = 'https://www.youtube.com/watch?v=z50hkrXG50I';
         $link = $currentEpisode->link ?? '';
         if ($link) {
             $isYouTube = (bool) preg_match('~(?:youtu\\.be/|youtube\\.com/(?:watch\\?v=|embed/))([\\w-]{6,})~i', $link);
