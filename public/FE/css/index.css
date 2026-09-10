@@ -347,17 +347,8 @@ html, body{
 	margin: 20px 0;
 }
 .main-watch-detail iframe{
-	width: 100%;
+	width: 1129px;
 	height: 480px;
-}
-
-@media (max-width: 767px) {
-	#main { display: block; }
-	.main-body, .right-body { max-width: 100%; flex: 0 0 100%; }
-	.movie-main-content { min-height: 430px; height: auto; background-size: cover; background-position: center; }
-	.movie-main-content .col-7, .movie-main-content .col-5 { margin-top: 15px; }
-	.movie-main-content .col-7 h1, .movie-main-content h1 { font-size: 30px; }
-	.movie-info img { height: 240px; object-fit: cover; }
 }
 .main-watch-detail hr{
 	border-bottom: 1px solid grey;
